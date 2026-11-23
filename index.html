@@ -1,0 +1,620 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#081321">
+<title>VAMNEX AI | Intelligent Conversations</title>
+
+<style>
+:root {
+  --bg:#081321;
+  --panel:#0d1c2c;
+  --surface:#13263a;
+  --border:#23394e;
+  --text:#edf5fb;
+  --muted:#91a7ba;
+  --accent:#43c9ee;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  font-family:Inter,system-ui,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100dvh;
+  overflow:hidden;
+}
+button,input,textarea {font:inherit}
+button {cursor:pointer}
+.app {height:100dvh;display:flex}
+
+/* SIDEBAR */
+.sidebar {
+  width:275px;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:20px 14px;
+  position:fixed;
+  inset:0 auto 0 0;
+  z-index:10;
+  transform:translateX(-100%);
+  transition:transform .25s ease;
+}
+.sidebar.open {transform:translateX(0)}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:4px 8px 24px;
+}
+.logo {
+  width:43px;height:43px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#174a69,#10283d);
+  display:grid;place-items:center;
+  border:1px solid #32718e;
+}
+.logo svg {width:29px;height:29px}
+.brand-name {font-size:19px;font-weight:750;letter-spacing:1.2px}
+.brand-tag {font-size:10px;color:var(--muted);margin-top:3px}
+.new-chat {
+  border:1px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  border-radius:11px;
+  padding:13px;
+  text-align:left;
+  margin-bottom:23px;
+}
+.new-chat:hover,.nav-item:hover {background:#1a344b}
+.section-label {
+  font-size:11px;
+  color:#71899d;
+  padding:0 10px 10px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+.nav-item {
+  display:flex;
+  align-items:center;
+  gap:13px;
+  width:100%;
+  padding:12px 10px;
+  border:0;
+  background:transparent;
+  color:#c5d4e0;
+  border-radius:9px;
+  text-align:left;
+  font-size:14px;
+}
+.nav-item svg {width:19px;height:19px}
+.history {flex:1;overflow:auto}
+.history-entry {
+  width:100%;padding:10px;
+  border:0;background:transparent;
+  color:#b9cbd9;text-align:left;
+  border-radius:8px;font-size:13px;
+  overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.history-entry:hover {background:var(--surface)}
+.sidebar-bottom {
+  border-top:1px solid var(--border);
+  padding-top:15px;
+}
+.profile {
+  display:flex;align-items:center;gap:10px;
+  padding:9px;border-radius:10px;
+  cursor:pointer;
+}
+.avatar {
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#236d8c,#173c5c);
+  display:grid;place-items:center;
+  font-weight:700;
+}
+.profile small {color:var(--muted)}
+
+/* MAIN */
+.main {width:100%;display:flex;flex-direction:column;min-width:0}
+.topbar {
+  height:68px;display:flex;align-items:center;
+  padding:0 22px;gap:16px;
+  border-bottom:1px solid var(--border);
+}
+.icon-btn {
+  width:40px;height:40px;
+  display:grid;place-items:center;
+  border:0;border-radius:10px;
+  background:transparent;color:var(--text);
+}
+.icon-btn:hover {background:var(--surface)}
+.icon-btn svg {width:21px;height:21px}
+.top-title {font-size:15px;font-weight:650}
+.top-status {margin-left:auto;color:#80a1b7;font-size:12px}
+
+.chat-area {
+  flex:1;overflow-y:auto;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:30px 18px;
+}
+.welcome {
+  margin:auto 0;
+  text-align:center;
+  max-width:600px;
+  width:100%;
+}
+.hero-logo {
+  width:70px;height:70px;
+  border-radius:22px;
+  background:linear-gradient(145deg,#174b68,#10263d);
+  border:1px solid #32718e;
+  display:grid;place-items:center;
+  margin:0 auto 24px;
+}
+.hero-logo svg {width:43px;height:43px}
+h1 {font-size:clamp(27px,5vw,38px);margin:0 0 12px}
+.subtitle {color:var(--muted);font-size:15px;line-height:1.7}
+.messages {
+  width:100%;max-width:760px;
+  display:flex;flex-direction:column;gap:22px;
+  margin:auto 0;
+}
+.message {display:flex;gap:12px;align-items:flex-start}
+.message.user {justify-content:flex-end}
+.message-content {
+  max-width:80%;padding:13px 16px;
+  border-radius:15px;line-height:1.6;
+  font-size:14px;overflow-wrap:anywhere;
+}
+.user .message-content {background:#163e58}
+.assistant .message-content {background:transparent;padding-left:0}
+.message-avatar {
+  width:30px;height:30px;flex-shrink:0;
+  border-radius:10px;background:#17415a;
+  display:grid;place-items:center;
+}
+
+/* INPUT */
+.composer-wrap {
+  width:100%;max-width:790px;
+  margin:0 auto;padding:15px 18px 10px;
+}
+.composer {
+  background:#112438;
+  border:1px solid #304b61;
+  border-radius:19px;
+  padding:14px 15px 11px;
+  box-shadow:0 8px 35px #0002;
+}
+.composer:focus-within {border-color:#3685a6}
+#messageInput {
+  width:100%;min-height:36px;max-height:150px;
+  resize:none;border:0;outline:0;
+  background:transparent;color:var(--text);
+  font-size:15px;
+}
+#messageInput::placeholder {color:#8299ad}
+.composer-bottom {
+  display:flex;align-items:center;gap:7px;
+  margin-top:9px;
+}
+.attach-btn {
+  width:35px;height:35px;
+  display:grid;place-items:center;
+  border:0;border-radius:9px;
+  background:transparent;color:#9db6c9;
+}
+.attach-btn:hover {background:#203d53;color:#fff}
+.attach-btn svg {width:20px;height:20px}
+.send-btn {
+  margin-left:auto;width:37px;height:37px;
+  display:grid;place-items:center;
+  border:0;border-radius:11px;
+  background:var(--accent);color:#071521;
+}
+.send-btn:hover {background:#79ddf7}
+.send-btn svg {width:20px;height:20px}
+#fileInput,#photoInput,#cameraInput {display:none}
+#preview {
+  display:none;gap:8px;align-items:center;
+  color:#a8c4d7;font-size:12px;padding:5px 0 10px;
+}
+#preview button {
+  border:0;background:transparent;color:#ff9a9a;
+}
+.disclaimer {
+  text-align:center;color:#71899d;
+  font-size:10px;padding:10px 0 3px;
+}
+
+/* MODAL */
+.overlay {
+  display:none;position:fixed;inset:0;
+  background:#0009;z-index:30;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.overlay.show {display:flex}
+.modal {
+  width:100%;max-width:420px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;padding:22px;
+}
+.modal-head {
+  display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:18px;
+}
+.modal h2 {font-size:19px;margin:0}
+.modal p {font-size:13px;color:var(--muted);line-height:1.6}
+.modal-row {
+  display:flex;justify-content:space-between;
+  align-items:center;padding:13px 0;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+}
+.modal-row:last-child {border:0}
+.modal input[type="text"] {
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);padding:10px;border-radius:8px;
+  width:100%;margin-top:8px;
+}
+.toggle {accent-color:var(--accent)}
+
+@media(min-width:800px) {
+  .sidebar {position:relative;transform:none}
+  .sidebar.closed {display:none}
+}
+@media(max-width:480px) {
+  .topbar {padding:0 14px}
+  .chat-area {padding:20px 14px}
+  .composer-wrap {padding:12px 12px 7px}
+  .message-content {max-width:88%}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path d="M8 29V11L20 23L32 11V29"
+          stroke="#66DDF7" stroke-width="3.3"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="8" r="2" fill="#66DDF7"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">VAMNEX AI</div>
+      <div class="brand-tag">INTELLIGENCE. CLARITY. TRUST.</div>
+    </div>
+  </div>
+
+  <button class="new-chat" onclick="newChat()">＋ &nbsp; New chat</button>
+
+  <div class="section-label">Workspace</div>
+  <button class="nav-item" onclick="newChat()">＋ &nbsp; New Chat</button>
+  <button class="nav-item" onclick="showHistory()">◷ &nbsp; Chat History</button>
+
+  <div class="section-label" style="margin-top:22px">Recent chats</div>
+  <div class="history" id="historyList">
+    <div style="padding:10px;color:#71899d;font-size:12px">
+      Your conversations will appear here.
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <button class="nav-item" onclick="openModal('settingsModal')">⚙ &nbsp; Settings</button>
+    <button class="nav-item" onclick="openModal('privacyModal')">◇ &nbsp; Privacy & Security</button>
+    <button class="nav-item" onclick="openModal('helpModal')">? &nbsp; Help & Support</button>
+    <button class="nav-item" onclick="openModal('aboutModal')">ⓘ &nbsp; About VAMNEX</button>
+    <div class="profile" onclick="openModal('profileModal')">
+      <div class="avatar" id="avatar">V</div>
+      <div>
+        <strong id="profileName">Your Profile</strong><br>
+        <small>Personal account</small>
+      </div>
+      <span style="margin-left:auto;color:#91a7ba">›</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <button class="icon-btn" onclick="toggleSidebar()" aria-label="Open menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.8" stroke-linecap="round">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <span class="top-title">VAMNEX AI</span>
+    <span class="top-status">AI Assistant</span>
+  </header>
+
+  <section class="chat-area" id="chatArea">
+    <div class="welcome" id="welcome">
+      <div class="hero-logo">
+        <svg viewBox="0 0 40 40" fill="none">
+          <path d="M8 29V11L20 23L32 11V29"
+            stroke="#66DDF7" stroke-width="3.3"
+            stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="20" cy="8" r="2" fill="#66DDF7"/>
+        </svg>
+      </div>
+      <h1>What can I help you with?</h1>
+      <div class="subtitle">
+        Ask questions, explore ideas and get clear answers.<br>
+        Welcome to VAMNEX AI.
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+  </section>
+
+  <div class="composer-wrap">
+    <div class="composer">
+      <textarea id="messageInput" rows="1"
+        placeholder="Message VAMNEX AI..."
+        onkeydown="handleKey(event)"
+        oninput="resizeInput(this)"></textarea>
+
+      <div id="preview">
+        <span id="fileName"></span>
+        <button onclick="clearFile()">✕</button>
+      </div>
+
+      <div class="composer-bottom">
+        <button class="attach-btn" onclick="fileInput.click()"
+          title="Choose a file" aria-label="Choose a file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m20 11.5-8.5 8.5a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/>
+          </svg>
+        </button>
+
+        <button class="attach-btn" onclick="photoInput.click()"
+          title="Choose a photo" aria-label="Choose a photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="m21 15-5-5L5 21"/>
+          </svg>
+        </button>
+
+        <button class="attach-btn" onclick="cameraInput.click()"
+          title="Take a picture" aria-label="Take a picture">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 4h-4L8 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </button>
+
+        <input id="fileInput" type="file"
+          accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,.pptx"
+          onchange="selectFile(this)">
+        <input id="photoInput" type="file" accept="image/*"
+          onchange="selectFile(this)">
+        <input id="cameraInput" type="file" accept="image/*"
+          capture="environment" onchange="selectFile(this)">
+
+        <button class="send-btn" onclick="sendMessage()"
+          aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="disclaimer">
+      VAMNEX AI can make mistakes. Verify important information.
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- PROFILE -->
+<div class="overlay" id="profileModal">
+ <div class="modal">
+  <div class="modal-head">
+   <h2>Your Profile</h2>
+   <button class="icon-btn" onclick="closeModals()">✕</button>
+  </div>
+  <p>Set up your personal VAMNEX AI profile.</p>
+  <label style="font-size:13px">Display name</label>
+  <input type="text" id="nameInput" placeholder="Enter your name">
+  <button class="new-chat" style="width:100%;margin-top:16px"
+    onclick="saveProfile()">Save profile</button>
+ </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settingsModal">
+ <div class="modal">
+  <div class="modal-head">
+   <h2>Settings</h2>
+   <button class="icon-btn" onclick="closeModals()">✕</button>
+  </div>
+  <div class="modal-row">
+   <span>Dark appearance</span>
+   <input class="toggle" type="checkbox" checked disabled>
+  </div>
+  <div class="modal-row">
+   <span>Save chat history</span>
+   <input class="toggle" type="checkbox" checked id="saveHistory">
+  </div>
+  <p>More personalization and accessibility settings can be added later.</p>
+ </div>
+</div>
+
+<div class="overlay" id="privacyModal">
+ <div class="modal">
+  <div class="modal-head"><h2>Privacy & Security</h2>
+   <button class="icon-btn" onclick="closeModals()">✕</button></div>
+  <p>Your conversations and uploaded files need secure backend handling.
+  Do not upload passwords or sensitive personal information.</p>
+ </div>
+</div>
+
+<div class="overlay" id="helpModal">
+ <div class="modal">
+  <div class="modal-head"><h2>Help & Support</h2>
+   <button class="icon-btn" onclick="closeModals()">✕</button></div>
+  <p>Need help using VAMNEX AI? Help and support information will be
+  provided here.</p>
+ </div>
+</div>
+
+<div class="overlay" id="aboutModal">
+ <div class="modal">
+  <div class="modal-head"><h2>About VAMNEX AI</h2>
+   <button class="icon-btn" onclick="closeModals()">✕</button></div>
+  <p>VAMNEX AI is an independent AI assistant project built to make
+  information easier to understand and access.</p>
+  <p><strong>Intelligence. Clarity. Trust.</strong></p>
+  <p>Build 1.0</p>
+ </div>
+</div>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const input = document.getElementById("messageInput");
+const messages = document.getElementById("messages");
+const welcome = document.getElementById("welcome");
+const fileInput = document.getElementById("fileInput");
+let selectedFile = null;
+let chats = JSON.parse(localStorage.getItem("vamnexChats") || "[]");
+
+function toggleSidebar() {
+  sidebar.classList.toggle("open");
+  if (window.innerWidth >= 800) sidebar.classList.toggle("closed");
+}
+
+function openModal(id) {
+  closeModals();
+  document.getElementById(id).classList.add("show");
+  if(id === "profileModal") {
+    document.getElementById("nameInput").value =
+      localStorage.getItem("vamnexName") || "";
+  }
+}
+function closeModals() {
+  document.querySelectorAll(".overlay").forEach(el =>
+    el.classList.remove("show"));
+}
+function saveProfile() {
+  const name = document.getElementById("nameInput").value.trim();
+  if(!name) return;
+  localStorage.setItem("vamnexName",name);
+  document.getElementById("profileName").textContent = name;
+  document.getElementById("avatar").textContent = name[0].toUpperCase();
+  closeModals();
+}
+function selectFile(element) {
+  if(!element.files.length) return;
+  selectedFile = element.files[0];
+  document.getElementById("fileName").textContent = selectedFile.name;
+  document.getElementById("preview").style.display = "flex";
+}
+function clearFile() {
+  selectedFile = null;
+  fileInput.value = "";
+  document.getElementById("photoInput").value = "";
+  document.getElementById("cameraInput").value = "";
+  document.getElementById("preview").style.display = "none";
+}
+function resizeInput(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight,150) + "px";
+}
+function handleKey(event) {
+  if(event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+function addMessage(text,type) {
+  const row = document.createElement("div");
+  row.className = "message " + type;
+  const content = document.createElement("div");
+  content.className = "message-content";
+  content.textContent = text;
+  if(type === "assistant") {
+    const avatar = document.createElement("div");
+    avatar.className = "message-avatar";
+    avatar.textContent = "V";
+    row.append(avatar,content);
+  } else {
+    row.append(content);
+  }
+  messages.appendChild(row);
+  document.getElementById("chatArea").scrollTop =
+    document.getElementById("chatArea").scrollHeight;
+}
+function sendMessage() {
+  const text = input.value.trim();
+  if(!text && !selectedFile) return;
+
+  welcome.style.display = "none";
+  addMessage(text || "Uploaded: " + selectedFile.name,"user");
+
+  // The real AI response will be connected through a secure backend.
+  addMessage(
+    "The VAMNEX AI interface is ready. The AI backend is not connected yet. We will connect it securely in the next development stage.",
+    "assistant"
+  );
+
+  const title = text || selectedFile.name;
+  chats.unshift({title, time:Date.now()});
+  if(document.getElementById("saveHistory").checked) {
+    localStorage.setItem("vamnexChats",JSON.stringify(chats));
+  }
+  renderHistory();
+  input.value = "";
+  input.style.height = "36px";
+  clearFile();
+}
+function newChat() {
+  messages.innerHTML = "";
+  welcome.style.display = "block";
+  input.value = "";
+  clearFile();
+  if(window.innerWidth < 800) sidebar.classList.remove("open");
+}
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  chats.forEach(chat => {
+    const button = document.createElement("button");
+    button.className = "history-entry";
+    button.textContent = chat.title;
+    button.onclick = () => {
+      newChat();
+      input.value = chat.title;
+      input.focus();
+    };
+    list.appendChild(button);
+  });
+}
+function showHistory() {
+  renderHistory();
+  if(window.innerWidth < 800) sidebar.classList.remove("open");
+}
+document.getElementById("profileName").textContent =
+  localStorage.getItem("vamnexName") || "Your Profile";
+document.getElementById("avatar").textContent =
+  (localStorage.getItem("vamnexName") || "V")[0].toUpperCase();
+renderHistory();
+</script>
+</body>
+</html>
