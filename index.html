@@ -561,29 +561,95 @@ function addMessage(text,type) {
   document.getElementById("chatArea").scrollTop =
     document.getElementById("chatArea").scrollHeight;
 }
-function sendMessage() {
+
+async function sendMessage() {
   const text = input.value.trim();
-  if(!text && !selectedFile) return;
+
+  if (!text && !selectedFile) return;
 
   welcome.style.display = "none";
-  addMessage(text || "Uploaded: " + selectedFile.name,"user");
 
-  // The real AI response will be connected through a secure backend.
-  addMessage(
-    "The VAMNEX AI interface is ready. The AI backend is not connected yet. We will connect it securely in the next development stage.",
-    "assistant"
-  );
+  const userMessage = text || "Uploaded: " + selectedFile.name;
+  addMessage(userMessage, "user");
 
   const title = text || selectedFile.name;
-  chats.unshift({title, time:Date.now()});
-  if(document.getElementById("saveHistory").checked) {
-    localStorage.setItem("vamnexChats",JSON.stringify(chats));
+
+  chats.unshift({
+    title,
+    time: Date.now()
+  });
+
+  if (document.getElementById("saveHistory").checked) {
+    localStorage.setItem("vamnexChats", JSON.stringify(chats));
   }
+
   renderHistory();
+
   input.value = "";
   input.style.height = "36px";
+
+  const fileWasSelected = !!selectedFile;
   clearFile();
+
+  if (fileWasSelected) {
+    addMessage(
+      "File upload is not connected yet. Image and PDF processing will be added in the next development stage.",
+      "assistant"
+    );
+    return;
+  }
+
+  const sendButton = document.getElementById("sendBtn");
+  if (sendButton) sendButton.disabled = true;
+
+  addMessage("Thinking...", "assistant");
+
+  try {
+    const response = await fetch(
+      "https://vamnex-ai-backend.vamsireddy3699.workers.dev/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: text
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    const messagesList = document.getElementById("messages");
+    const lastMessage = messagesList.lastElementChild;
+
+    if (!response.ok) {
+      throw new Error(
+        data.details || data.error || "AI request failed"
+      );
+    }
+
+    if (lastMessage) {
+      lastMessage.textContent =
+        data.reply || "No response received.";
+    }
+
+  } catch (error) {
+    const messagesList = document.getElementById("messages");
+    const lastMessage = messagesList.lastElementChild;
+
+    if (lastMessage) {
+      lastMessage.textContent =
+        "Sorry, VAMNEX AI could not connect right now. Please try again later.";
+    }
+
+    console.error("VAMNEX AI error:", error);
+
+  } finally {
+    if (sendButton) sendButton.disabled = false;
+  }
 }
+  
 function newChat() {
   messages.innerHTML = "";
   welcome.style.display = "block";
